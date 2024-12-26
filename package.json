@@ -1,0 +1,39 @@
+{
+  "name": "vscode-pnpm-verlens",
+  "publisher": "chavyleung",
+  "private": true,
+  "version": "1.0.0",
+  "displayName": "VSCode Pnpm Version Lens",
+  "description": "Shows the latest version for each package using code lens",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/chavyleung/vscode-pnpm-verlens"
+  },
+  "icon": "res/icon.png",
+  "files": ["LICENSE", "dist/*", "res/*"],
+  "main": "./dist/extension.js",
+  "keywords": ["npm", "pnpm", "catalog", "catalogs", "version", "versions"],
+  "activationEvents": ["onLanguage:yaml"],
+  "categories": ["Programming Languages", "Other"],
+  "engines": {
+    "vscode": ">=1.90.0"
+  },
+  "scripts": {
+    "build": "node build/esbuild.js",
+    "watch": "node build/esbuild.js --watch"
+  },
+  "dependencies": {
+    "semver": "7.6.3",
+    "yaml": "2.6.1"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "1.9.4",
+    "@npm/types": "2.0.0",
+    "@types/node": "22.10.2",
+    "@types/semver": "7.5.8",
+    "@types/vscode": "1.90.0",
+    "@vscode/vsce": "3.2.1",
+    "esbuild": "0.24.2",
+    "typescript": "5.7.2"
+  }
+}
