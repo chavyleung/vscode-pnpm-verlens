@@ -2,7 +2,7 @@
   "name": "vscode-pnpm-verlens",
   "publisher": "chavyleung",
   "private": true,
-  "version": "1.0.3",
+  "version": "1.0.4",
   "packageManager": "pnpm@9.15.4",
   "displayName": "VSCode Pnpm Version Lens",
   "description": "Shows the latest version for each package using code lens",
