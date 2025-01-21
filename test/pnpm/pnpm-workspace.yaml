@@ -3,7 +3,7 @@ packages:
   - packages/*
 
 catalog:
-  typescript: "^5.7.2"
+  typescript: ">5.7.2"
   esbuild: 0.24.2
   semver: 7.6.3
 

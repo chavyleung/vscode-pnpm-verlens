@@ -1,4 +1,5 @@
 import type { Packument } from '@npm/types'
+
 import { maxSatisfying } from 'semver'
 
 const caches: Record<string, Promise<Packument | null>> = {}
@@ -18,9 +19,12 @@ export const fetchDepPackument = (name: string) => {
 }
 
 export const fetchLatestVersion = (name: string) => {
-  return fetchDepPackument(name).then<string | null>(
-    (packument) => packument?.['dist-tags'].latest ?? null,
-  )
+  return fetchDepPackument(name).then<string | null>((packument) => {
+    if (packument.error) {
+      return null
+    }
+    return packument?.['dist-tags'].latest ?? null
+  })
 }
 
 export const fetchSatisfiesVersion = (

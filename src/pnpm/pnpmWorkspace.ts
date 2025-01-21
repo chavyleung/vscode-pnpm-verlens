@@ -1,4 +1,3 @@
-import { gt } from 'semver'
 import type {
   CodeLens,
   CodeLensProvider,
@@ -7,8 +6,10 @@ import type {
   TextDocument,
 } from 'vscode'
 
+import { eq, gt } from 'semver'
 import { Range, WorkspaceEdit, commands, languages, workspace } from 'vscode'
 import YAML from 'yaml'
+
 import { fetchLatestVersion, fetchSatisfiesVersion } from '~/npm'
 import { isNumber, isString, parseVersion } from '~/utils'
 
@@ -53,6 +54,8 @@ const createCodeLensProvider = () => {
           return await resolveLatestVersionCodeLens(codeLens)
         case 'satisfies':
           return await resolveSatisfiesVersionCodeLens(codeLens)
+        case 'flag':
+          return await resolveFlagCodeLens(codeLens)
         default:
           return null
       }
@@ -77,10 +80,15 @@ const parseDeps = (doc: TextDocument, node: unknown) => {
 }
 
 const parseDep = (doc: TextDocument, pair: DepPair) => {
+  const name = parseDepName(doc, pair)
+  const version = parseDepVersion(doc, pair)
+  const suggestions = parseDepSuggestions(name.value, version.value)
+
   const dep: Dep = {
     doc,
-    name: parseDepName(doc, pair),
-    version: parseDepVersion(doc, pair),
+    name,
+    version,
+    suggestions,
   }
 
   return dep
@@ -113,6 +121,48 @@ const parseDepVersion = (doc: TextDocument, pair: DepPair) => {
     quote: quote,
   }
   return version
+}
+
+const parseDepSuggestions = async (name: string, version?: string) => {
+  const suggestions: DepSuggestions = {
+    flag: '🔴',
+    latest: {
+      version: null,
+      isUpdateable: false,
+    },
+    satisfies: {
+      version: null,
+      isUpdateable: false,
+    },
+  }
+
+  const latest = await fetchLatestVersion(name)
+  if (latest == null) {
+    suggestions.flag = '🔴 package not found'
+    return suggestions
+  }
+
+  if (latest != null) {
+    const ver = parseVersion(version)
+    const isLatestUpdateable = version == null ? true : !eq(latest, ver.version)
+    suggestions.latest.version = latest
+    suggestions.latest.isUpdateable = isLatestUpdateable
+    suggestions.flag = isLatestUpdateable ? '🟡' : '✔️'
+    return suggestions
+  }
+
+  const satisfies = await fetchSatisfiesVersion(name, version)
+  if (satisfies != null) {
+    const ver = parseVersion(version)
+    const isSatisfiesUpdateable =
+      version == null ? true : gt(satisfies, ver.version)
+    suggestions.satisfies.version = latest
+    suggestions.satisfies.isUpdateable = isSatisfiesUpdateable
+    suggestions.flag = isSatisfiesUpdateable ? '🟡' : '✔️'
+    return suggestions
+  }
+
+  return suggestions
 }
 
 const parseDepKeyValue = (value: unknown) => {
@@ -175,6 +225,20 @@ interface Dep {
   doc: TextDocument
   name: DepKey<string>
   version: DepVal<string>
+  suggestions: Promise<DepSuggestions>
+}
+
+interface DepSuggestions {
+  flag: string
+
+  latest: {
+    version: string | null
+    isUpdateable: boolean
+  }
+  satisfies: {
+    version: string | null
+    isUpdateable: boolean
+  }
 }
 
 interface DepKey<T> {
@@ -189,7 +253,7 @@ interface DepVal<T> {
 }
 
 type DepType = 'npm'
-type DepTag = 'fixed' | 'latest' | 'satisfies'
+type DepTag = 'fixed' | 'latest' | 'satisfies' | 'flag'
 
 interface DepCodeLens extends CodeLens {
   type: DepType
@@ -204,6 +268,7 @@ export const parseCodelenses = (deps: Dep[]) => {
     codelenses.push(createCodelens('fixed', dep))
     codelenses.push(createCodelens('latest', dep))
     codelenses.push(createCodelens('satisfies', dep))
+    codelenses.push(createCodelens('flag', dep))
   }
 
   return codelenses
@@ -260,7 +325,7 @@ const resolveLatestVersionCodeLens = async (codeLens: DepCodeLens) => {
   }
 
   const { version } = parseVersion(dep.version.value)
-  const isUpdateable = gt(latest, version)
+  const isUpdateable = dep.version.value == null ? true : gt(latest, version)
   const flag = isUpdateable ? '↑' : ''
 
   codeLens.command = {
@@ -321,6 +386,15 @@ const resolveSatisfiesVersionCodeLens = async (codeLens: DepCodeLens) => {
       },
     ],
   }
+
+  return codeLens
+}
+
+const resolveFlagCodeLens = async (codeLens: DepCodeLens) => {
+  const dep = codeLens.dep
+
+  const suggestions = await dep.suggestions
+  codeLens.command = { title: suggestions.flag, command: '' }
 
   return codeLens
 }

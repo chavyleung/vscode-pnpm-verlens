@@ -12,6 +12,7 @@
       "preLaunchTask": "watch: verlens",
       "outFiles": ["${workspaceFolder}/dist/**/*.js"],
       "args": [
+        "--disable-extensions",
         "--extensionDevelopmentPath=${workspaceFolder}",
         "${workspaceFolder}/test/pnpm"
       ]
