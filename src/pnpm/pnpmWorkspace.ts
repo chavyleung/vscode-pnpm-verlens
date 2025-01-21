@@ -6,7 +6,7 @@ import type {
   TextDocument,
 } from 'vscode'
 
-import { eq, gt } from 'semver'
+import { gt } from 'semver'
 import { Range, WorkspaceEdit, commands, languages, workspace } from 'vscode'
 import YAML from 'yaml'
 
@@ -144,21 +144,20 @@ const parseDepSuggestions = async (name: string, version?: string) => {
 
   if (latest != null) {
     const ver = parseVersion(version)
-    const isLatestUpdateable = version == null ? true : !eq(latest, ver.version)
+    const isUpdateable = version == null ? true : gt(latest, ver.version)
     suggestions.latest.version = latest
-    suggestions.latest.isUpdateable = isLatestUpdateable
-    suggestions.flag = isLatestUpdateable ? '🟡' : '✔️'
+    suggestions.latest.isUpdateable = isUpdateable
+    suggestions.flag = isUpdateable ? '🟡' : '✔️'
     return suggestions
   }
 
   const satisfies = await fetchSatisfiesVersion(name, version)
   if (satisfies != null) {
     const ver = parseVersion(version)
-    const isSatisfiesUpdateable =
-      version == null ? true : gt(satisfies, ver.version)
+    const isUpdateable = version == null ? true : gt(satisfies, ver.version)
     suggestions.satisfies.version = latest
-    suggestions.satisfies.isUpdateable = isSatisfiesUpdateable
-    suggestions.flag = isSatisfiesUpdateable ? '🟡' : '✔️'
+    suggestions.satisfies.isUpdateable = isUpdateable
+    suggestions.flag = isUpdateable ? '🟡' : '✔️'
     return suggestions
   }
 
