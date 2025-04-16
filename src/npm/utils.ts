@@ -1,15 +1,31 @@
 import type { Packument } from '@npm/types'
 
 import { maxSatisfying } from 'semver'
+import { workspace } from 'vscode'
 
+const DEFAULT_REGISTRY = 'https://registry.npmjs.org'
 const caches: Record<string, Promise<Packument | null>> = {}
+
+let _registry = ''
+const getRegistry = () => {
+  if (_registry) {
+    return _registry
+  }
+
+  const config = workspace.getConfiguration('vscode-pnpm-verlens')
+  const reg = config.get<string>('registry', DEFAULT_REGISTRY)
+  _registry = reg ? reg : DEFAULT_REGISTRY
+  return _registry
+}
 
 export const fetchDepPackument = (name: string) => {
   if (caches[name] != null) {
     return caches[name]
   }
 
-  const url = `https://registry.npmjs.org/${name}`
+  const registry = getRegistry()
+  const pathname = `${registry.endsWith('/') ? '' : '/'}${name}`
+  const url = new URL(`${registry}${pathname}`)
   const fetchPromise = fetch(url)
     .then((resp) => resp.json())
     .then((packument: Packument) => packument)

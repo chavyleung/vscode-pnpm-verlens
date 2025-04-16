@@ -2,7 +2,7 @@
   "name": "vscode-pnpm-verlens",
   "publisher": "chavyleung",
   "private": true,
-  "version": "1.0.4",
+  "version": "1.1.0",
   "packageManager": "pnpm@9.15.4",
   "displayName": "VSCode Pnpm Version Lens",
   "description": "Shows the latest version for each package using code lens",
@@ -21,7 +21,8 @@
   },
   "scripts": {
     "build": "node build/esbuild.js",
-    "watch": "node build/esbuild.js --watch"
+    "watch": "node build/esbuild.js --watch",
+    "publish": "vsce publish --no-dependencies"
   },
   "dependencies": {
     "semver": "7.6.3",
@@ -36,5 +37,17 @@
     "@vscode/vsce": "3.2.1",
     "esbuild": "0.24.2",
     "typescript": "5.7.2"
+  },
+  "contributes": {
+    "configuration": {
+      "title": "vscode-pnpm-verlens",
+      "properties": {
+        "vscode-pnpm-verlens.registry": {
+          "type": "string",
+          "default": "https://registry.npmjs.org",
+          "description": ""
+        }
+      }
+    }
   }
 }
