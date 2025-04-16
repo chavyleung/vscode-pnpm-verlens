@@ -8,7 +8,7 @@
 // settings.json
 {
   // ...
-  "vscode-pnpm-verlens.registry": "https://skimdb.npmjs.com/registry"
+  "vscode-pnpm-verlens.registry": "https://registry.npmjs.org"
   // ...
 }
 ```
